@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Essentials">
+      <UniqueIdentifier>{00783378-5573-434c-9d5a-cfaa8e5e269f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ConMIDI">
+      <UniqueIdentifier>{20f5edaf-5e1f-4f7e-bfdc-3f6345cead36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ConMIDI\Synth">
+      <UniqueIdentifier>{c6937982-26c5-40df-b1c2-0f1cad7a661f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libSharpfall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysXUnity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libSharpfall-broken\ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libSharpfall-broken\BufferFile.cpp">
+      <Filter>Source Files\Essentials</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libSharpfall-broken\KDMAPI.cpp">
+      <Filter>Source Files\ConMIDI\Synth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libSharpfall-broken\Synth.cpp">
+      <Filter>Source Files\ConMIDI\Synth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libSharpfall-broken\ConMIDI.cpp">
+      <Filter>Source Files\ConMIDI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PhysXUnity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\BufferFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\Synth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\KDMAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\ConMIDI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libSharpfall-broken\EventThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libSharpfall.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
