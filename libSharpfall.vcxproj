@@ -145,7 +145,7 @@
       <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Desktop\Software\Sharpfall\v3-dev1\Sharpfall v3_Data\Plugins\x86_64\libSharpfall.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

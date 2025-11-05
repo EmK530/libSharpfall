@@ -21,8 +21,8 @@ static std::vector<PxRigidDynamic*> gActors;
 bool CUDA = false;
 const char* CUDA_device = "N/A";
 
-int solverIterations = 8;
-int subStepTargetFPS = 120;
+int solverIterations = 32;
+int subStepTargetFPS = 60;
 
 extern "C"
 {
@@ -89,7 +89,6 @@ extern "C"
                     sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
                     sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
                     sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
-                    sceneDesc.flags &= ~PxSceneFlag::eENABLE_CCD;
                     sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
 
                     PxGpuDynamicsMemoryConfig gpuMemoryConfig;
