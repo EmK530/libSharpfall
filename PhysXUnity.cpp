@@ -34,7 +34,6 @@ extern "C"
         if (mScene)
             return;
 
-        // Local static allocator & error callback to avoid Unity crashes
         static PxDefaultAllocator gAllocator;
         static PxDefaultErrorCallback gErrorCallback;
 
