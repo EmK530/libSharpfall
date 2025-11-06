@@ -29,10 +29,13 @@ extern "C"
     __declspec(dllexport) bool PXU_GetCUDAStatus() { return CUDA; }
     __declspec(dllexport) const char* PXU_GetCUDADevice() { return CUDA_device; }
 
-    __declspec(dllexport) void PXU_InitPhysics()
+    __declspec(dllexport) int PXU_InitPhysics()
     {
         if (mScene)
-            return;
+        {
+            MessageBoxA(0, "Attempt to invoke PXU_InitPhysics when already initialized", "libSharpfall Warning", MB_ICONWARNING);
+            return 1;
+        }
 
         static PxDefaultAllocator gAllocator;
         static PxDefaultErrorCallback gErrorCallback;
@@ -41,14 +44,16 @@ extern "C"
         mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
         if (!mFoundation)
         {
-            return;
+            MessageBoxA(0, "Failed to initialize PhysX on: PxCreateFoundation", "libSharpfall Error", MB_ICONERROR);
+            return 0;
         }
 
         // Create physics
         mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale());
         if (!mPhysics)
         {
-            return;
+            MessageBoxA(0, "Failed to initialize PhysX on: PxCreatePhysics", "libSharpfall Error", MB_ICONERROR);
+            return 0;
         }
 
         // Create default material
@@ -65,7 +70,7 @@ extern "C"
         cudaGetDeviceCount(&deviceCount);
         if (deviceCount == 0)
         {
-            MessageBoxA(0, "No CUDA devices detected.", "libSharpfall Warning", MB_ICONWARNING);
+            //MessageBoxA(0, "No CUDA devices detected.", "libSharpfall Warning", MB_ICONWARNING);
         }
         else
         {
@@ -112,8 +117,8 @@ extern "C"
         mScene = mPhysics->createScene(sceneDesc);
         if (!mScene)
         {
-            MessageBoxA(0, "PxCreateScene failed!", "libSharpfall Warning", MB_ICONERROR);
-            return;
+            MessageBoxA(0, "Failed to initialize PhysX on: mPhysics->createScene", "libSharpfall Error", MB_ICONERROR);
+            return 0;
         }
 
         gActors.clear();
@@ -124,6 +129,8 @@ extern "C"
         PxMaterial* platformMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.10f);
         PxRigidStatic* platform = PxCreateStatic(*mPhysics, platformTransform, platformGeom, *platformMaterial);
         mScene->addActor(*platform);
+
+        return 1;
     }
 
     __declspec(dllexport) int PXU_CreateObject(float x, float y, float z, float vx, float vy, float vz)
@@ -197,9 +204,9 @@ extern "C"
     }
 }
 
-void PhysXUnity::InitPhysics()
+int PhysXUnity::InitPhysics()
 {
-    PXU_InitPhysics();
+    return PXU_InitPhysics();
 }
 int PhysXUnity::CreateObject(float x, float y, float z, float vx, float vy, float vz)
 {
