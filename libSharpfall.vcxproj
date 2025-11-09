@@ -165,7 +165,7 @@
     <ClInclude Include="..\libSharpfall-broken\KDMAPI.h" />
     <ClInclude Include="..\libSharpfall-broken\ObjectManager.h" />
     <ClInclude Include="..\libSharpfall-broken\Synth.h" />
-    <ClInclude Include="PhysXUnity.h" />
+    <ClInclude Include="headers\PhysXUnity.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

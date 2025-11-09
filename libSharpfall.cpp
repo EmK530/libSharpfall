@@ -1,7 +1,7 @@
 #include "PhysXUnity.h"
 #include "ConMIDI.h"
 
-#define libSharpfall_TARGET "^Sharpfall v3-indev";
+#define libSharpfall_TARGET "FL1";
 #define libSharpfall_VER "INDEV";
 #define PhysXUnity_VER "INDEV";
 #define ConMIDI_VER "v3.0.0 (v3-b401 C++ Port)";

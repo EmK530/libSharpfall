@@ -20,6 +20,7 @@ static std::vector<PxRigidDynamic*> gActors;
 
 bool CUDA = false;
 const char* CUDA_device = "N/A";
+const char* CUDA_error = "N/A";
 
 int solverIterations = 32;
 int subStepTargetFPS = 60;
@@ -28,12 +29,13 @@ extern "C"
 {
     __declspec(dllexport) bool PXU_GetCUDAStatus() { return CUDA; }
     __declspec(dllexport) const char* PXU_GetCUDADevice() { return CUDA_device; }
+    __declspec(dllexport) const char* PXU_GetCUDAError() { return CUDA_error; }
 
     __declspec(dllexport) int PXU_InitPhysics()
     {
         if (mScene)
         {
-            MessageBoxA(0, "Attempt to invoke PXU_InitPhysics when already initialized", "libSharpfall Warning", MB_ICONWARNING);
+            //MessageBoxA(0, "Attempt to invoke PXU_InitPhysics when already initialized", "libSharpfall Warning", MB_ICONWARNING);
             return 1;
         }
 
@@ -70,13 +72,14 @@ extern "C"
         cudaGetDeviceCount(&deviceCount);
         if (deviceCount == 0)
         {
+            CUDA_error = "No CUDA-compatible devices found";
             //MessageBoxA(0, "No CUDA devices detected.", "libSharpfall Warning", MB_ICONWARNING);
         }
         else
         {
             cudaDeviceProp deviceProp;
             cudaGetDeviceProperties(&deviceProp, 0);
-            CUDA_device = deviceProp.name;
+            CUDA_device = _strdup(deviceProp.name);
             //MessageBoxA(0, deviceProp.name, "CUDA Device Found", MB_ICONINFORMATION);
 
             // Create CUDA context
@@ -104,6 +107,7 @@ extern "C"
             }
             else
             {
+                CUDA_error = "Failed to create CudaContextManager";
                 if (mCudaContextManager)
                 {
                     mCudaContextManager->release();
