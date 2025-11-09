@@ -11,7 +11,7 @@ bool KDMAPI_loaded = false;
 
 int Sound_Init() {
     if (KDMAPI_Setup() == 0) {
-        MessageBoxA(0, "Could not initialize OmniMIDI, you might run into issues.", "libSharpfall Error", 0x00000010);
+        MessageBoxA(0, "OmniMIDI is not installed on your system or is corrupt.", "libSharpfall Error", 0x00000010);
         return 0;
     };
 
@@ -27,6 +27,7 @@ int Sound_Init() {
 int Sound_Reload() {
     if (!KDMAPI_loaded)
         return 0;
-    KDMAPI_ResetKDMAPIStream();
+    KDMAPI_TerminateKDMAPIStream();
+    KDMAPI_InitializeKDMAPIStream();
     return 1;
 }

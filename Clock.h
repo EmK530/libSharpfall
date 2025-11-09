@@ -1,5 +1,4 @@
 #pragma once
-#include <ctime>
 
 class Clock
 {
@@ -9,7 +8,7 @@ public:
     {
         ticklen = (1.0 / cppq) * (60.0 / bpm);
         timee = 0.0;
-        throttle = true;
+        throttle = false;
         timeLost = 0.0;
         lastElapsed = 0.0;
     }
@@ -44,6 +43,11 @@ public:
     double GetTick() const
     {
         return timee;
+    }
+
+    double GetTickLen() const
+    {
+        return ticklen;
     }
 
     void Reset()

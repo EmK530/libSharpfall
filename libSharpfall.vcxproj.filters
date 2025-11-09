@@ -13,14 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Essentials">
-      <UniqueIdentifier>{00783378-5573-434c-9d5a-cfaa8e5e269f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\ConMIDI">
-      <UniqueIdentifier>{20f5edaf-5e1f-4f7e-bfdc-3f6345cead36}</UniqueIdentifier>
+      <UniqueIdentifier>{264c39e6-d976-4728-9faa-5e9d9bc6f4a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Essentials">
+      <UniqueIdentifier>{96eef5e4-5c10-4721-b2a4-15088e51b6b6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\ConMIDI\Synth">
-      <UniqueIdentifier>{c6937982-26c5-40df-b1c2-0f1cad7a661f}</UniqueIdentifier>
+      <UniqueIdentifier>{d32c240e-b91f-4b2e-a86f-ae0d3b933c92}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,54 +30,49 @@
     <ClCompile Include="PhysXUnity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\ObjectManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\BufferFile.cpp">
-      <Filter>Source Files\Essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\KDMAPI.cpp">
-      <Filter>Source Files\ConMIDI\Synth</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\Synth.cpp">
-      <Filter>Source Files\ConMIDI\Synth</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\ConMIDI.cpp">
+    <ClCompile Include="ConMIDI.cpp">
       <Filter>Source Files\ConMIDI</Filter>
     </ClCompile>
+    <ClCompile Include="BufferFile.cpp">
+      <Filter>Source Files\Essentials</Filter>
+    </ClCompile>
+    <ClCompile Include="KDMAPI.cpp">
+      <Filter>Source Files\ConMIDI\Synth</Filter>
+    </ClCompile>
+    <ClCompile Include="Synth.cpp">
+      <Filter>Source Files\ConMIDI\Synth</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libSharpfall-broken\ObjectManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="PhysXUnity.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\BufferFile.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="BufferFile.h">
+      <Filter>Source Files\Essentials</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\Synth.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="KDMAPI.h">
+      <Filter>Source Files\ConMIDI\Synth</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\KDMAPI.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Synth.h">
+      <Filter>Source Files\ConMIDI\Synth</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\Clock.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="ConMIDI.h">
+      <Filter>Source Files\ConMIDI</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\ConMIDI.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Clock.h">
+      <Filter>Source Files\ConMIDI</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\EventThread.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="EventThread.h">
+      <Filter>Source Files\ConMIDI</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="UniSleep.h">
+      <Filter>Source Files\Essentials</Filter>
     </ClInclude>
-    <ClInclude Include="headers\PhysXUnity.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="ObjectManager.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="libSharpfall.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>
