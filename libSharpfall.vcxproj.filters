@@ -47,31 +47,34 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libSharpfall-broken\ObjectManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\BufferFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\Synth.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\libSharpfall-broken\KDMAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\Clock.h">
+    <ClInclude Include="headers\BufferFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\ConMIDI.h">
+    <ClInclude Include="headers\Synth.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\libSharpfall-broken\EventThread.h">
+    <ClInclude Include="headers\ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\ConMIDI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\EventThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\PhysXUnity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\UniSleep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -158,14 +158,15 @@
     <ClCompile Include="PhysXUnity.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libSharpfall-broken\BufferFile.h" />
-    <ClInclude Include="..\libSharpfall-broken\Clock.h" />
-    <ClInclude Include="..\libSharpfall-broken\ConMIDI.h" />
-    <ClInclude Include="..\libSharpfall-broken\EventThread.h" />
-    <ClInclude Include="..\libSharpfall-broken\KDMAPI.h" />
-    <ClInclude Include="..\libSharpfall-broken\ObjectManager.h" />
-    <ClInclude Include="..\libSharpfall-broken\Synth.h" />
+    <ClInclude Include="headers\BufferFile.h" />
+    <ClInclude Include="headers\Clock.h" />
+    <ClInclude Include="headers\ConMIDI.h" />
+    <ClInclude Include="headers\EventThread.h" />
+    <ClInclude Include="headers\ObjectManager.h" />
+    <ClInclude Include="headers\KDMAPI.h" />
+    <ClInclude Include="headers\Synth.h" />
     <ClInclude Include="headers\PhysXUnity.h" />
+    <ClInclude Include="headers\UniSleep.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -4,8 +4,8 @@
 #include <cuda_runtime.h>
 #include <Windows.h>
 
-#include "PhysXUnity.h"
-#include "ObjectManager.h"
+#include "headers\PhysXUnity.h"
+#include "headers\ObjectManager.h"
 
 using namespace physx;
 
