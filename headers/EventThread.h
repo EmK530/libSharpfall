@@ -4,7 +4,6 @@
 #include <cstdint>
 #include "UniSleep.h"
 #include "Synth.h"
-#include <future>
 
 constexpr size_t BUFFER_SIZE = 65536;
 
@@ -16,17 +15,14 @@ std::atomic<bool> running{ false };
 std::thread eventThread;
 std::atomic<unsigned long*> writePtr{ bufferStart };
 
+// Initialize thread
 inline void EventThread_Init()
 {
     writePtr.store(bufferStart, std::memory_order_relaxed);
     running.store(true, std::memory_order_relaxed);
 
-    std::promise<void> started;
-    auto ready = started.get_future();
-
-    eventThread = std::thread([&started]() {
+    eventThread = std::thread([]() {
         unsigned long* readPtr = bufferStart;
-        started.set_value();
 
         while (running.load(std::memory_order_relaxed))
         {
@@ -39,8 +35,6 @@ inline void EventThread_Init()
             uniSleep(1);
         }
         });
-
-    ready.wait();
 }
 
 inline void EventThread_QueueEvent(unsigned long data)

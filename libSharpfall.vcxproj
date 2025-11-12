@@ -21,26 +21,26 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{7d0c1848-c9c7-42e7-b966-60d6987ea70d}</ProjectGuid>
+    <ProjectGuid>{69ea7f6f-1ce3-4d4f-980e-03f16fa914a5}</ProjectGuid>
     <RootNamespace>libSharpfall</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -74,12 +74,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;LIBSHARPFALL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -88,32 +91,36 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;LIBSHARPFALL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;LIBSHARPFALL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(PHYSX_PATH)\include;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(PHYSX_PATH)\debug\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(PHYSX_PATH)\debug\lib\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>xcopy /y /e "$(PHYSX_PATH)\debug\dll\*" "$(OutDir)\*"</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -121,43 +128,48 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;LIBSHARPFALL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(PHYSX_PATH)\include;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(PHYSX_PATH)\include;$(CUDA_PATH)\include;headers</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
+      <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>$(PHYSX_PATH)\release\lib\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>xcopy /y /e "$(PHYSX_PATH)\release\dll\*" "$(OutDir)\*"</Command>
-    </PreBuildEvent>
     <PostBuildEvent>
-      <Command>copy "$(OutDir)\libSharpfall.dll" "C:\Users\EmK530\Sharpfall v2\Assets\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BufferFile.cpp" />
-    <ClCompile Include="ConMIDI.cpp" />
-    <ClCompile Include="KDMAPI.cpp" />
+    <ClCompile Include="..\libSharpfall-broken\BufferFile.cpp" />
+    <ClCompile Include="..\libSharpfall-broken\ConMIDI.cpp" />
+    <ClCompile Include="..\libSharpfall-broken\KDMAPI.cpp" />
+    <ClCompile Include="..\libSharpfall-broken\ObjectManager.cpp" />
+    <ClCompile Include="..\libSharpfall-broken\Synth.cpp" />
     <ClCompile Include="libSharpfall.cpp" />
-    <ClCompile Include="ObjectManager.cpp" />
-    <ClCompile Include="Synth.cpp" />
     <ClCompile Include="PhysXUnity.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BufferFile.h" />
-    <ClInclude Include="Clock.h" />
-    <ClInclude Include="ConMIDI.h" />
-    <ClInclude Include="EventThread.h" />
-    <ClInclude Include="KDMAPI.h" />
-    <ClInclude Include="ObjectManager.h" />
-    <ClInclude Include="Synth.h" />
-    <ClInclude Include="PhysXUnity.h" />
-    <ClInclude Include="UniSleep.h" />
+    <ClInclude Include="..\libSharpfall-broken\BufferFile.h" />
+    <ClInclude Include="..\libSharpfall-broken\Clock.h" />
+    <ClInclude Include="..\libSharpfall-broken\ConMIDI.h" />
+    <ClInclude Include="..\libSharpfall-broken\EventThread.h" />
+    <ClInclude Include="..\libSharpfall-broken\KDMAPI.h" />
+    <ClInclude Include="..\libSharpfall-broken\ObjectManager.h" />
+    <ClInclude Include="..\libSharpfall-broken\Synth.h" />
+    <ClInclude Include="headers\PhysXUnity.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libSharpfall.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
