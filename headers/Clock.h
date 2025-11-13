@@ -7,7 +7,7 @@ public:
         : cppq(ppq), bpm(bpmInit)
     {
         ticklen = (1.0 / cppq) * (60.0 / bpm);
-        timee = 0.0;
+        timee = -1.0 / ticklen;
         throttle = false;
         timeLost = 0.0;
         lastElapsed = 0.0;

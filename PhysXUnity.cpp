@@ -161,6 +161,7 @@ extern "C"
 
     __declspec(dllexport) void PXU_StepPhysics(float deltaTime)
     {
+        NewFrame();
         float subStepTarget = 1.0f / (float)subStepTargetFPS;
         int subSteps = max((deltaTime / subStepTarget), 1);
         for (int i = 0; i < subSteps; i++)

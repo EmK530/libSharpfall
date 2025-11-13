@@ -30,26 +30,23 @@
     <ClCompile Include="PhysXUnity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\ObjectManager.cpp">
+    <ClCompile Include="ObjectManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\BufferFile.cpp">
+    <ClCompile Include="BufferFile.cpp">
       <Filter>Source Files\Essentials</Filter>
     </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\KDMAPI.cpp">
+    <ClCompile Include="KDMAPI.cpp">
       <Filter>Source Files\ConMIDI\Synth</Filter>
     </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\Synth.cpp">
+    <ClCompile Include="Synth.cpp">
       <Filter>Source Files\ConMIDI\Synth</Filter>
     </ClCompile>
-    <ClCompile Include="..\libSharpfall-broken\ConMIDI.cpp">
+    <ClCompile Include="ConMIDI.cpp">
       <Filter>Source Files\ConMIDI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libSharpfall-broken\KDMAPI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="headers\BufferFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -62,9 +59,6 @@
     <ClInclude Include="headers\Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\ConMIDI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="headers\EventThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\UniSleep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\KDMAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

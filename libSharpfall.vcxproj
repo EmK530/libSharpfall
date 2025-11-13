@@ -145,22 +145,21 @@
       <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll" &amp; copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Desktop\Software\Sharpfall\v3 Early Builds\v3.0.0-pre-2025111300\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\libSharpfall-broken\BufferFile.cpp" />
-    <ClCompile Include="..\libSharpfall-broken\ConMIDI.cpp" />
-    <ClCompile Include="..\libSharpfall-broken\KDMAPI.cpp" />
-    <ClCompile Include="..\libSharpfall-broken\ObjectManager.cpp" />
-    <ClCompile Include="..\libSharpfall-broken\Synth.cpp" />
+    <ClCompile Include="BufferFile.cpp" />
+    <ClCompile Include="ConMIDI.cpp" />
+    <ClCompile Include="KDMAPI.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="Synth.cpp" />
     <ClCompile Include="libSharpfall.cpp" />
     <ClCompile Include="PhysXUnity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\BufferFile.h" />
     <ClInclude Include="headers\Clock.h" />
-    <ClInclude Include="headers\ConMIDI.h" />
     <ClInclude Include="headers\EventThread.h" />
     <ClInclude Include="headers\ObjectManager.h" />
     <ClInclude Include="headers\KDMAPI.h" />

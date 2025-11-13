@@ -7,6 +7,7 @@ public:
     int InitPhysics();
     int CreateObject(float x, float y, float z, float vx, float vy, float vz);
     void DeleteAllObjects();
+    void WriteNewObjectLimit();
     void StepPhysics(float deltaTime);
     int GetAllObjectTransforms(ObjectData* buffer, int bufferSize);
     void SetObjectTransform(int index, float x, float y, float z, float qx, float qy, float qz, float qw, float vx, float vy, float vz);
