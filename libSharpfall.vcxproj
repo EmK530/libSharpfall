@@ -141,11 +141,11 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(PHYSX_PATH)\release\lib\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(PHYSX_PATH)\lib\release\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll" &amp; copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Desktop\Software\Sharpfall\v3 Early Builds\v3.0.0-pre-2025111300\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll" &amp; copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Desktop\Software\Sharpfall\v3 Early Builds\v3.0.0-pre-2026011400\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -153,9 +153,11 @@
     <ClCompile Include="ConMIDI.cpp" />
     <ClCompile Include="KDMAPI.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="PFAColors.cpp" />
     <ClCompile Include="Synth.cpp" />
     <ClCompile Include="libSharpfall.cpp" />
     <ClCompile Include="PhysXUnity.cpp" />
+    <ClCompile Include="tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\BufferFile.h" />
@@ -163,10 +165,12 @@
     <ClInclude Include="headers\EventThread.h" />
     <ClInclude Include="headers\ObjectManager.h" />
     <ClInclude Include="headers\KDMAPI.h" />
+    <ClInclude Include="headers\PFAColors.h" />
     <ClInclude Include="headers\Synth.h" />
     <ClInclude Include="headers\PhysXUnity.h" />
     <ClInclude Include="headers\UniSleep.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="tinyxml2.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="libSharpfall.rc" />

@@ -17,9 +17,9 @@ public:
     void resizeBuffer(std::size_t newSize);
 
     uint8_t readByte();
-    std::vector<uint8_t> readRange(std::size_t size);
+    std::vector<uint8_t> readRange(std::int64_t size);
     int textSearch(const std::string& text);
-    void copy(uint8_t* target, std::size_t offset, std::size_t size = 0);
+    void copy(uint8_t* target, std::int64_t offset, std::int64_t size = 0);
     std::int64_t getFilePos();
     std::int64_t getBufPos();
     std::int64_t getBufRange();
@@ -29,8 +29,8 @@ private:
 
     FILE* file_ = nullptr;
     std::vector<uint8_t> buffer_;
-    std::size_t bufRange_ = 0;
-    std::size_t bufPos_ = 0;
+    std::int64_t bufRange_ = 0;
+    std::int64_t bufPos_ = 0;
     std::int64_t filePos_ = 0;
     std::int64_t curSeek_ = 0;
     bool fileEnded_ = false;

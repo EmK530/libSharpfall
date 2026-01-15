@@ -27,6 +27,7 @@ int Sound_Init() {
 int Sound_Reload() {
     if (!KDMAPI_loaded)
         return 0;
-    KDMAPI_ResetKDMAPIStream();
+    KDMAPI_TerminateKDMAPIStream();
+    KDMAPI_InitializeKDMAPIStream();
     return 1;
 }

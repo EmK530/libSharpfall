@@ -3,6 +3,7 @@
 #include "headers\BufferFile.h"
 #include "headers\EventThread.h"
 #include "headers\ObjectManager.h"
+#include "headers\PFAColors.h"
 #include <stdio.h>
 #include <memory>
 
@@ -17,8 +18,8 @@ int trackCount = 0;
 int realTracks = 0;
 int ppq = 0;
 
-int lastPos = 0;
-int lastSize = 0;
+int64_t lastPos = 0;
+int64_t lastSize = 0;
 
 bool loaded = false;
 
@@ -43,7 +44,7 @@ int CopyTrack(BufferFile* buf, int id)
     for (int i = 0; i < 4; ++i)
         lastSize = (lastSize << 8) | buf->readByte();
 
-    int sz = lastSize;
+    int64_t sz = lastSize;
     int offset = 0;
 
     trackData.push_back(std::make_unique<unsigned char[]>(sz));
@@ -52,7 +53,7 @@ int CopyTrack(BufferFile* buf, int id)
 
     while (sz > 0)
     {
-        unsigned long use = std::min<unsigned long>(sz, buf->getBufRange() - buf->getBufPos());
+        int64_t use = std::min<int64_t>(sz, buf->getBufRange() - buf->getBufPos());
         buf->copy(trackBuf.get(), offset, use);
         offset += use;
         sz -= use;
@@ -320,13 +321,13 @@ extern "C"
                 break;
         }
 
-        realTracks = i;
-
         if (realTracks == 0)
         {
             MessageBoxA(0, "Failed to load MIDI, no tracks were copied.", "libSharpfall Warning", 0x00000030);
             return 0;
         }
+
+        PFAColors::Init(realTracks);
 
         trackReader.resize(realTracks);
         trackPosition.resize(realTracks, 0);

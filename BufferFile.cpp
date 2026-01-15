@@ -73,13 +73,14 @@ void BufferFile::resizeBuffer(std::size_t newSize) {
 }
 
 uint8_t BufferFile::readByte() {
-    if (bufPos_ >= bufRange_) {
+    if (bufPos_ + 1 >= bufRange_) {
         updateBuffer();
     }
-    return buffer_[bufPos_++];
+    bufPos_++;
+    return buffer_[bufPos_ - 1];
 }
 
-std::vector<uint8_t> BufferFile::readRange(std::size_t size) {
+std::vector<uint8_t> BufferFile::readRange(std::int64_t size) {
     if (bufPos_ + size >= bufRange_) {
         updateBuffer();
     }
@@ -96,7 +97,7 @@ int BufferFile::textSearch(const std::string& text) {
     return res == 0 ? 1 : 0;
 }
 
-void BufferFile::copy(uint8_t* target, std::size_t offset, std::size_t size) {
+void BufferFile::copy(uint8_t* target, std::int64_t offset, std::int64_t size) {
     if (bufPos_ + size >= bufRange_) {
         updateBuffer();
     }

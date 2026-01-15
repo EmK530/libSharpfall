@@ -1,11 +1,10 @@
 #include <Windows.h>
+#include "headers\PFAColors.h"
 #include "headers\ObjectManager.h"
 #include "headers\PhysXUnity.h"
 #include <deque>
 
 static PhysXUnity _PhysXUnity;
-
-struct ColorData { float r, g, b, a; };
 static std::vector<ColorData> gColor;
 
 enum NoDoublesMode
@@ -168,7 +167,8 @@ void SubmitNote(unsigned long long clock, int track, char note, char vel)
             0.0f // todo: vel.z
         );
 
-        gColor.push_back(HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f));
+        //gColor.push_back(HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f));
+        gColor.push_back(PFAColors::trackColors[track]);
     }
     else
     {
@@ -183,7 +183,8 @@ void SubmitNote(unsigned long long clock, int track, char note, char vel)
             -15.0f, // todo: vel.y
             0.0f // todo: vel.z
         );
-        gColor[index] = HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f);
+        //gColor[index] = HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f);
+        gColor[index] = PFAColors::trackColors[track];
     }
 
     totalSpawns++;

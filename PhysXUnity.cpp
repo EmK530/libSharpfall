@@ -1,4 +1,5 @@
 #include <vector>
+#include <DirectXMath.h>
 #include <PxPhysicsAPI.h>
 #include <gpu/PxPhysicsGpu.h>
 #include <cuda_runtime.h>
@@ -87,23 +88,19 @@ extern "C"
             mCudaContextManager = PxCreateCudaContextManager(*mFoundation, cudaContextManagerDesc, nullptr);
             if (mCudaContextManager && mCudaContextManager->contextIsValid())
             {
-                CUDA = true;
                 //MessageBoxA(0, "GPU acceleration enabled.", "libSharpfall Warning", MB_ICONINFORMATION);
+                CUDA = true;
+                sceneDesc.cudaContextManager = mCudaContextManager;
+                sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+                sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
+                sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
+                sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
 
-                if (mCudaContextManager)
-                {
-                    sceneDesc.cudaContextManager = mCudaContextManager;
-                    sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
-                    sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
-                    sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
-                    sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
-
-                    PxGpuDynamicsMemoryConfig gpuMemoryConfig;
-                    gpuMemoryConfig.maxRigidContactCount = 1024 * 512 * 8;
-                    gpuMemoryConfig.maxRigidPatchCount = 1024 * 80 * 8;
-                    gpuMemoryConfig.foundLostPairsCapacity = 256 * 1024 * 8;
-                    sceneDesc.gpuDynamicsConfig = gpuMemoryConfig;
-                }
+                PxGpuDynamicsMemoryConfig gpuMemoryConfig;
+                gpuMemoryConfig.maxRigidContactCount = 1024 * 512 * 16;
+                gpuMemoryConfig.maxRigidPatchCount = 1024 * 80 * 16;
+                gpuMemoryConfig.foundLostPairsCapacity = 256 * 1024 * 16;
+                sceneDesc.gpuDynamicsConfig = gpuMemoryConfig;
             }
             else
             {
@@ -159,6 +156,22 @@ extern "C"
         gActors.clear();
     }
 
+    __declspec(dllexport) void PXU_BeginStep(float deltaTime)
+    {
+        NewFrame();
+        mScene->simulate(deltaTime);
+    }
+
+    __declspec(dllexport) bool PXU_IsStepDone()
+    {
+        return mScene->fetchResults(false);
+    }
+
+    __declspec(dllexport) void PXU_CompleteStep()
+    {
+        mScene->fetchResults(true);
+    }
+
     __declspec(dllexport) void PXU_StepPhysics(float deltaTime)
     {
         NewFrame();
@@ -171,16 +184,49 @@ extern "C"
         }
     }
 
-    __declspec(dllexport) int PXU_GetAllObjectTransforms(ObjectData* buffer, int bufferSize)
+    __declspec(dllexport) int PXU_GetAllObjectMatrices(UnityMatrix* buffer, int bufferSize)
     {
         int count = min(bufferSize, (int)gActors.size());
-        for (int i = 0;i < count;i++)
+        for (int i = 0; i < count; i++)
         {
             PxTransform t = gActors[i]->getGlobalPose();
-            buffer[i].x = t.p.x; buffer[i].y = t.p.y; buffer[i].z = t.p.z;
-            buffer[i].qx = t.q.x; buffer[i].qy = t.q.y; buffer[i].qz = t.q.z; buffer[i].qw = t.q.w;
+            PxVec3 s(0.1f, 1.0f, 1.0f); // scale
+
+            PxQuat q = t.q;
+
+            // Precompute quaternion products
+            float xx = q.x * q.x;
+            float yy = q.y * q.y;
+            float zz = q.z * q.z;
+            float xy = q.x * q.y;
+            float xz = q.x * q.z;
+            float yz = q.y * q.z;
+            float wx = q.w * q.x;
+            float wy = q.w * q.y;
+            float wz = q.w * q.z;
+
+            // Column-major rotation * scale for Unity
+            buffer[i].m00 = (1 - 2 * (yy + zz)) * s.x;
+            buffer[i].m01 = (2 * (xy + wz)) * s.x;
+            buffer[i].m02 = (2 * (xz - wy)) * s.x;
+            buffer[i].m03 = 0.0f;
+
+            buffer[i].m10 = (2 * (xy - wz)) * s.y;
+            buffer[i].m11 = (1 - 2 * (xx + zz)) * s.y;
+            buffer[i].m12 = (2 * (yz + wx)) * s.y;
+            buffer[i].m13 = 0.0f;
+
+            buffer[i].m20 = (2 * (xz + wy)) * s.z;
+            buffer[i].m21 = (2 * (yz - wx)) * s.z;
+            buffer[i].m22 = (1 - 2 * (xx + yy)) * s.z;
+            buffer[i].m23 = 0.0f;
+
+            buffer[i].m30 = t.p.x;
+            buffer[i].m31 = t.p.y;
+            buffer[i].m32 = t.p.z;
+            buffer[i].m33 = 1.0f;
         }
-        return 1;
+        return count;
     }
 
     __declspec(dllexport) void PXU_SetObjectTransform(int index, float x, float y, float z, float qx, float qy, float qz, float qw, float vx, float vy, float vz)
@@ -221,13 +267,25 @@ void PhysXUnity::DeleteAllObjects()
 {
     PXU_DeleteAllObjects();
 }
+void PhysXUnity::BeginStep(float deltaTime)
+{
+    PXU_BeginStep(deltaTime);
+}
+void PhysXUnity::IsStepDone()
+{
+    PXU_IsStepDone();
+}
+void PhysXUnity::CompleteStep()
+{
+    PXU_CompleteStep();
+}
 void PhysXUnity::StepPhysics(float deltaTime)
 {
     PXU_StepPhysics(deltaTime);
 }
-int PhysXUnity::GetAllObjectTransforms(ObjectData* buffer, int bufferSize)
+int PhysXUnity::GetAllObjectMatrices(UnityMatrix* buffer, int bufferSize)
 {
-    return PXU_GetAllObjectTransforms(buffer, bufferSize);
+    return PXU_GetAllObjectMatrices(buffer, bufferSize);
 }
 void PhysXUnity::SetObjectTransform(int index, float x, float y, float z, float qx, float qy, float qz, float qw, float vx, float vy, float vz)
 {
