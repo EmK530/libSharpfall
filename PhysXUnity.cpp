@@ -1,4 +1,5 @@
 #include <vector>
+#include <thread>
 #include <DirectXMath.h>
 #include <PxPhysicsAPI.h>
 #include <gpu/PxPhysicsGpu.h>
@@ -23,8 +24,61 @@ bool CUDA = false;
 const char* CUDA_device = "N/A";
 const char* CUDA_error = "N/A";
 
-int solverIterations = 32;
+static bool CUDA_requested = true;
+
+int solverIterations = 16;
 int subStepTargetFPS = 60;
+
+static PxScene* CreateScene()
+{
+    PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
+    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+    sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
+    sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+
+    CUDA = false;
+    CUDA_error = "N/A";
+
+    if (CUDA_requested)
+    {
+        int deviceCount = 0;
+        cudaGetDeviceCount(&deviceCount);
+
+        if (deviceCount > 0)
+        {
+            cudaDeviceProp deviceProp;
+            cudaGetDeviceProperties(&deviceProp, 0);
+            CUDA_device = _strdup(deviceProp.name);
+
+            PxCudaContextManagerDesc desc;
+            mCudaContextManager = PxCreateCudaContextManager(*mFoundation, desc, nullptr);
+
+            if (mCudaContextManager && mCudaContextManager->contextIsValid())
+            {
+                sceneDesc.cudaContextManager = mCudaContextManager;
+                sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+                sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
+                sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
+                sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
+
+                PxGpuDynamicsMemoryConfig gpuMem;
+                gpuMem.maxRigidContactCount = 1024 * 512 * 16;
+                gpuMem.maxRigidPatchCount = 1024 * 80 * 16;
+                gpuMem.foundLostPairsCapacity = 256 * 1024 * 16;
+                sceneDesc.gpuDynamicsConfig = gpuMem;
+
+                CUDA = true;
+            }
+        }
+        else
+        {
+            CUDA_error = "No CUDA devices found";
+        }
+    }
+
+    return mPhysics->createScene(sceneDesc);
+}
+
 
 extern "C"
 {
@@ -62,60 +116,7 @@ extern "C"
         // Create default material
         mMaterial = mPhysics->createMaterial(0.25f, 0.25f, 0.15f);
 
-        // Scene descriptor
-        PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
-        sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
-        sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(16);
-        sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-
-        // Check for CUDA devices
-        int deviceCount = 0;
-        cudaGetDeviceCount(&deviceCount);
-        if (deviceCount == 0)
-        {
-            CUDA_error = "No CUDA-compatible devices found";
-            //MessageBoxA(0, "No CUDA devices detected.", "libSharpfall Warning", MB_ICONWARNING);
-        }
-        else
-        {
-            cudaDeviceProp deviceProp;
-            cudaGetDeviceProperties(&deviceProp, 0);
-            CUDA_device = _strdup(deviceProp.name);
-            //MessageBoxA(0, deviceProp.name, "CUDA Device Found", MB_ICONINFORMATION);
-
-            // Create CUDA context
-            PxCudaContextManagerDesc cudaContextManagerDesc;
-            mCudaContextManager = PxCreateCudaContextManager(*mFoundation, cudaContextManagerDesc, nullptr);
-            if (mCudaContextManager && mCudaContextManager->contextIsValid())
-            {
-                //MessageBoxA(0, "GPU acceleration enabled.", "libSharpfall Warning", MB_ICONINFORMATION);
-                CUDA = true;
-                sceneDesc.cudaContextManager = mCudaContextManager;
-                sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
-                sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
-                sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
-                sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
-
-                PxGpuDynamicsMemoryConfig gpuMemoryConfig;
-                gpuMemoryConfig.maxRigidContactCount = 1024 * 512 * 16;
-                gpuMemoryConfig.maxRigidPatchCount = 1024 * 80 * 16;
-                gpuMemoryConfig.foundLostPairsCapacity = 256 * 1024 * 16;
-                sceneDesc.gpuDynamicsConfig = gpuMemoryConfig;
-            }
-            else
-            {
-                CUDA_error = "Failed to create CudaContextManager";
-                if (mCudaContextManager)
-                {
-                    mCudaContextManager->release();
-                    mCudaContextManager = nullptr;
-                }
-                //MessageBoxA(0, "GPU acceleration disabled.", "libSharpfall Warning", MB_ICONWARNING);
-            }
-        }
-
-        // Create scene
-        mScene = mPhysics->createScene(sceneDesc);
+        mScene = CreateScene();
         if (!mScene)
         {
             MessageBoxA(0, "Failed to initialize PhysX on: mPhysics->createScene", "libSharpfall Error", MB_ICONERROR);
@@ -141,7 +142,7 @@ extern "C"
 
         body->attachShape(*shape);
 
-        body->setSolverIterationCounts(solverIterations, 1);
+        body->setSolverIterationCounts(solverIterations * (CUDA ? 2 : 1), 1);
 
         body->setLinearVelocity(PxVec3(vx, vy, vz));
         PxRigidBodyExt::updateMassAndInertia(*body, 1.0f);
@@ -172,16 +173,15 @@ extern "C"
         mScene->fetchResults(true);
     }
 
-    __declspec(dllexport) void PXU_StepPhysics(float deltaTime)
+    __declspec(dllexport) void PXU_SignalNewFrame()
     {
         NewFrame();
-        float subStepTarget = 1.0f / (float)subStepTargetFPS;
-        int subSteps = max((deltaTime / subStepTarget), 1);
-        for (int i = 0; i < subSteps; i++)
-        {
-            mScene->simulate(deltaTime / (float)subSteps);
-            mScene->fetchResults(true);
-        }
+    }
+
+    __declspec(dllexport) void PXU_StepPhysics(float deltaTime)
+    {
+        mScene->simulate(deltaTime);
+        mScene->fetchResults(true);
     }
 
     __declspec(dllexport) int PXU_GetAllObjectMatrices(UnityMatrix* buffer, int bufferSize)
@@ -251,6 +251,59 @@ extern "C"
     __declspec(dllexport) void PXU_ShutdownPhysics()
     {
         // not solved yet, releasing causes Unity Editor crash
+        PXU_DeleteAllObjects();
+
+        if (mScene)
+        {
+            mScene->release();
+            mScene = nullptr;
+        }
+
+        if (mCudaContextManager)
+        {
+            mCudaContextManager->release();
+            mCudaContextManager = nullptr;
+        }
+    }
+
+    __declspec(dllexport) bool PXU_SetCUDAState(bool enabled)
+    {
+        if (CUDA_requested == enabled)
+            return true;
+
+        CUDA_requested = enabled;
+
+        if (!mPhysics)
+            return false;
+
+        // Scene must not be simulating here
+        PXU_ShutdownPhysics();
+
+        mScene = CreateScene();
+        if (!mScene)
+        {
+            MessageBoxA(0, "Failed to initialize PhysX on: mPhysics->createScene", "libSharpfall Error", MB_ICONERROR);
+            return false;
+        }
+
+        gActors.clear();
+
+        // Create static platform
+        PxTransform platformTransform(PxVec3(-0.5f, -5.0f, 0.0f));
+        PxBoxGeometry platformGeom(10.0f, 5.0f, 10.0f);
+        PxMaterial* platformMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.10f);
+        PxRigidStatic* platform = PxCreateStatic(*mPhysics, platformTransform, platformGeom, *platformMaterial);
+        mScene->addActor(*platform);
+
+        return true;
+    }
+
+    __declspec(dllexport) void PXU_SetSolverIterations(int value)
+    {
+        if (value <= 0)
+            return;
+
+        solverIterations = value;
         PXU_DeleteAllObjects();
     }
 }

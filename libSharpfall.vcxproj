@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClCompile Include="BufferFile.cpp" />
     <ClCompile Include="ConMIDI.cpp" />
+    <ClCompile Include="FFmpeg.cpp" />
     <ClCompile Include="KDMAPI.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="PFAColors.cpp" />

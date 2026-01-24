@@ -193,13 +193,19 @@ void SubmitNote(unsigned long long clock, int track, char note, char vel)
 
 extern "C"
 {
-    __declspec(dllexport) void OM_WriteNewObjectLimit(int val)
+    __declspec(dllexport) void OM_WriteConfig(const char* target, int val)
     {
-        blockLimit = val;
-        ResetOM();
-    }
-    __declspec(dllexport) void OM_WriteNewPerFrameLimit(int val)
-    {
-        perNoteLimit = val;
+        if (!target) return;
+        if (strcmp(target, "BlockLimit") == 0)
+        {
+			blockLimit = val;
+            ResetOM();
+            return;
+        }
+        if (strcmp(target, "LimitX1") == 0)
+        {
+            perNoteLimit = val;
+            return;
+        }
     }
 }
