@@ -126,7 +126,7 @@ extern "C"
         gActors.clear();
 
         // Create static platform
-        PxTransform platformTransform(PxVec3(-0.5f, -5.0f, 0.0f));
+        PxTransform platformTransform(PxVec3(0.0f, -5.0f, 0.0f));
         PxBoxGeometry platformGeom(10.0f, 5.0f, 10.0f);
         PxMaterial* platformMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.10f);
         PxRigidStatic* platform = PxCreateStatic(*mPhysics, platformTransform, platformGeom, *platformMaterial);
@@ -289,7 +289,7 @@ extern "C"
         gActors.clear();
 
         // Create static platform
-        PxTransform platformTransform(PxVec3(-0.5f, -5.0f, 0.0f));
+        PxTransform platformTransform(PxVec3(0.0f, -5.0f, 0.0f));
         PxBoxGeometry platformGeom(10.0f, 5.0f, 10.0f);
         PxMaterial* platformMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.10f);
         PxRigidStatic* platform = PxCreateStatic(*mPhysics, platformTransform, platformGeom, *platformMaterial);
