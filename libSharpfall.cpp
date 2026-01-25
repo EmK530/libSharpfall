@@ -1,7 +1,7 @@
 #include "headers\PhysXUnity.h"
 
 #define libSharpfall_TARGET "LV6";
-#define libSharpfall_VER "indev-2026012501";
+#define libSharpfall_VER "indev-2026012502";
 #define ConMIDI_VER "v3.0.0 (v3-b401 C++ Port)";
 
 #define VALIDATION "cd629ef8b2064d09"

@@ -13,8 +13,27 @@ extern "C" {
         int height;
     };
 
+    bool ffmpeg_exists()
+    {
+        FILE* f = _popen("ffmpeg -version >nul 2>&1", "r");
+        if (!f) return false;
+
+        int exitCode = _pclose(f);
+        return exitCode == 0;
+    }
+
     // Launch FFmpeg process with given arguments
     __declspec(dllexport) FFmpegContext* ffmpeg_start(const char* outputFile, int width, int height, int fps, const char* codec, int useCRF, int quality, const char* preset) {
+        if (!ffmpeg_exists()) {
+            MessageBoxA(
+                0,
+                "FFmpeg was not found.\nMake sure ffmpeg.exe is in PATH or next to Sharpfall.exe",
+                "libSharpfall Error",
+                MB_ICONERROR
+            );
+            return nullptr;
+        }
+        
         FFmpegContext* ctx = (FFmpegContext*)malloc(sizeof(FFmpegContext));
         ctx->width = width;
         ctx->height = height;
@@ -23,13 +42,13 @@ extern "C" {
 
         if (useCRF) {
             snprintf(cmd, sizeof(cmd),
-                "ffmpeg -y -f rawvideo -pixel_format rgba -video_size %dx%d -framerate %d -i pipe:0 -vf vflip -c:v %s -crf %d -preset %s -pix_fmt yuva444p \"%s\"",
+                "ffmpeg -y -f rawvideo -pixel_format rgba -video_size %dx%d -framerate %d -i pipe:0 -vf vflip -c:v %s -crf %d -preset %s -pix_fmt yuva444p \"%s\" 2>&1",
                 width, height, fps, codec, quality, preset, outputFile
             );
         }
         else {
             snprintf(cmd, sizeof(cmd),
-                "ffmpeg -y -f rawvideo -pixel_format rgba -video_size %dx%d -framerate %d -i pipe:0 -vf vflip -c:v %s -b:v %dK -pix_fmt yuva444p \"%s\"",
+                "ffmpeg -y -f rawvideo -pixel_format rgba -video_size %dx%d -framerate %d -i pipe:0 -vf vflip -c:v %s -b:v %dK -pix_fmt yuva444p \"%s\" 2>&1",
                 width, height, fps, codec, quality, outputFile
             );
         }
