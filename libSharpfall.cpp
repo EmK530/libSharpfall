@@ -1,10 +1,23 @@
 #include "headers\PhysXUnity.h"
+#define _CRT_SECURE_NO_WARNINGS
 
 #define libSharpfall_TARGET "LV6";
-#define libSharpfall_VER "indev-2026012503";
+#define libSharpfall_VER "indev-2026012603";
 #define ConMIDI_VER "v3.0.0 (v3-b401 C++ Port)";
 
 #define VALIDATION "cd629ef8b2064d09"
+
+#include <windows.h>
+#include <stdio.h>
+
+void AttachConsoleForLogging()
+{
+    if (AllocConsole()) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+        SetConsoleTitleA("libSharpfall Debug Console");
+    }
+}
 
 extern "C" {
     // ConMIDI and PhysXUnity functions are defined in their respective scripts
@@ -23,6 +36,7 @@ extern "C" {
 
     __declspec(dllexport) const char* LS_GetValidation()
     {
+		//AttachConsoleForLogging();
         return VALIDATION;
     }
 }

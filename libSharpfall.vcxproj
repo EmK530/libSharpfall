@@ -111,15 +111,15 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(PHYSX_PATH)\include;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(PHYSX_PATH)\include;$(CUDA_PATH)\include;headers</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(PHYSX_PATH)\debug\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(PHYSX_PATH)\debug\lib\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(PHYSX_PATH)\lib\debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(PHYSX_PATH)\lib\debug\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,7 +145,7 @@
       <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll" &amp; copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Desktop\Software\Sharpfall\v3 Early Builds\v3.0.0-pre-2026012500\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll" &amp; copy x64\Release\libSharpfall.dll "D:\Software\Sharpfall\v3 Early Builds\v3.0.0-pre-2026012602\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

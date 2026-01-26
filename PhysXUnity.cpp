@@ -5,6 +5,9 @@
 #include <gpu/PxPhysicsGpu.h>
 #include <cuda_runtime.h>
 #include <Windows.h>
+#include <string>
+#include <algorithm>
+#include <array>
 
 #include "headers\PhysXUnity.h"
 #include "headers\ObjectManager.h"
@@ -24,10 +27,76 @@ bool CUDA = false;
 const char* CUDA_device = "N/A";
 const char* CUDA_error = "N/A";
 
-static bool CUDA_requested = true;
+static bool CUDA_requested = false;
+static bool DisplayErrors = false;
+
+constexpr std::array<const char*, 37> dangerGPUs = {
+    // 6.1
+    "tesla p4", // also catches Tesla P40
+    "quadro p6000",
+    "quadro p5200",
+    "quadro p5000",
+    "quadro p4200",
+    "quadro p4000",
+    "quadro p3200",
+    "quadro p3000",
+    "quadro p2200",
+    "quadro p2000",
+    "quadro p1000",
+	"quadro p620",
+    "quadro p600",
+    "quadro p500",
+    "quadro p400",
+	"titan x", // also catches Titan Xp & GTX TITAN X (5.2)
+    "geforce gtx 1080", // includes Ti
+    "geforce gtx 1070", // includes Ti
+    "geforce gtx 1060",
+    "geforce gtx 1050",
+
+    // 6.0
+    "tesla p100",
+    "quadro gp100",
+    
+    // 5.2
+    "tesla m60",
+    "tesla m40",
+    "quadro m6000",
+    "quadro m5000",
+    "quadro m4000",
+    "quadro m2000",
+    "quadro m5500m",
+    "quadro m2200",
+    "quadro m620",
+    "geforce gtx 980", // includes Ti & 980M
+    "geforce gtx 970", // includes 970M
+    "geforce gtx 960",
+    "geforce gtx 950",
+    "geforce gtx 965m",
+    "geforce 910m"
+};
 
 int solverIterations = 16;
 int subStepTargetFPS = 60;
+
+class MyErrorCallback : public PxErrorCallback
+{
+public:
+    void reportError(PxErrorCode::Enum code, const char* message, const char* file, int line) override
+    {
+        if (DisplayErrors)
+        {
+            char msg[512];
+            snprintf(msg, 512, "PhysX Error %d: %s (%s:%d)\n", code, message, file, line);
+            MessageBoxA(0, msg, "PhysX Error", MB_ICONERROR);
+        }
+    }
+};
+
+std::string toLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+    return s;
+}
 
 static PxScene* CreateScene()
 {
@@ -35,6 +104,7 @@ static PxScene* CreateScene()
     sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
     sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
     sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+    sceneDesc.maxNbContactDataBlocks = 3906250;
 
     CUDA = false;
     CUDA_error = "N/A";
@@ -48,30 +118,55 @@ static PxScene* CreateScene()
         {
             cudaDeviceProp deviceProp;
             cudaGetDeviceProperties(&deviceProp, 0);
-            CUDA_device = _strdup(deviceProp.name);
 
-            PxCudaContextManagerDesc desc;
-            mCudaContextManager = PxCreateCudaContextManager(*mFoundation, desc, nullptr);
+            DisplayErrors = true;
 
-            if (mCudaContextManager && mCudaContextManager->contextIsValid())
+            bool allowed = true;
+            std::string gpuNameLower = toLower(deviceProp.name);
+            for (const char* gpu : dangerGPUs)
             {
-                sceneDesc.cudaContextManager = mCudaContextManager;
-                sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
-                sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
-                sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
-                sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
-
-                PxGpuDynamicsMemoryConfig gpuMem;
-                gpuMem.maxRigidContactCount = 1024 * 512 * 16;
-                gpuMem.maxRigidPatchCount = 1024 * 80 * 16;
-                gpuMem.foundLostPairsCapacity = 256 * 1024 * 16;
-                sceneDesc.gpuDynamicsConfig = gpuMem;
-
-                CUDA = true;
+                if (gpuNameLower.find(gpu) != std::string::npos)
+                {
+                    char message[512];
+                    snprintf(message, 512, "Your CUDA device (%s) does not meet the Compute Capability recommendation of 7.0!\n\nYou can try to enable CUDA anyway, but it's not officially supported by this PhysX version and might crash Sharpfall.\n\nTo enable anyway, press Yes.", deviceProp.name);
+                    allowed = MessageBoxA(0, message, "libSharpfall Warning", MB_ICONWARNING | MB_YESNO) == IDYES;
+                    break;
+                }
             }
+
+            if (allowed)
+            {
+                PxCudaContextManagerDesc desc;
+                mCudaContextManager = PxCreateCudaContextManager(*mFoundation, desc, nullptr);
+
+                if (mCudaContextManager && mCudaContextManager->contextIsValid())
+                {
+                    sceneDesc.cudaContextManager = mCudaContextManager;
+                    sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+                    sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
+                    sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
+                    sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
+
+                    PxGpuDynamicsMemoryConfig gpuMem;
+                    gpuMem.maxRigidContactCount = 1024 * 512 * 16;
+                    gpuMem.maxRigidPatchCount = 1024 * 80 * 16;
+                    gpuMem.foundLostPairsCapacity = 256 * 1024 * 16;
+                    sceneDesc.gpuDynamicsConfig = gpuMem;
+
+                    CUDA = true;
+                    CUDA_device = _strdup(deviceProp.name);
+                }
+                else {
+                    MessageBoxA(0, "Failed to create CUDA Context Manager, cannot enable CUDA acceleration.", "libSharpfall Error", MB_ICONERROR);
+                    CUDA_error = "Failed to create CUDA Context Manager";
+                }
+            }
+            
+            DisplayErrors = false;
         }
         else
         {
+            MessageBoxA(0, "No CUDA devices found, cannot enable CUDA acceleration.", "libSharpfall Error", MB_ICONERROR);
             CUDA_error = "No CUDA devices found";
         }
     }
@@ -95,10 +190,11 @@ extern "C"
         }
 
         static PxDefaultAllocator gAllocator;
-        static PxDefaultErrorCallback gErrorCallback;
+        //static PxDefaultErrorCallback gErrorCallback;
+		static MyErrorCallback gMyErrorCallback;
 
         // Create foundation
-        mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
+        mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gMyErrorCallback);
         if (!mFoundation)
         {
             MessageBoxA(0, "Failed to initialize PhysX on: PxCreateFoundation", "libSharpfall Error", MB_ICONERROR);
@@ -268,7 +364,7 @@ extern "C"
 
     __declspec(dllexport) bool PXU_SetCUDAState(bool enabled)
     {
-        if (CUDA_requested == enabled)
+        if (CUDA == enabled)
             return true;
 
         CUDA_requested = enabled;

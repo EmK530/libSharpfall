@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <cstring>
 
-#include "BufferFile.h"
+#include "headers/BufferFile.h"
 
 #if defined(_WIN32)
 #define fseeko _fseeki64
