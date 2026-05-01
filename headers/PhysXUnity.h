@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 struct UnityMatrix
 {
     float m00, m01, m02, m03;
@@ -8,12 +10,13 @@ struct UnityMatrix
     float m30, m31, m32, m33;
 };
 
+extern std::vector<bool> actorLivingStatus;
+
 class PhysXUnity {
 public:
     int InitPhysics();
     int CreateObject(float x, float y, float z, float vx, float vy, float vz);
     void DeleteAllObjects();
-    void WriteNewObjectLimit();
     void BeginStep(float deltaTime);
     void IsStepDone();
     void CompleteStep();
@@ -21,6 +24,7 @@ public:
     int GetAllObjectMatrices(UnityMatrix* buffer, int bufferSize);
     void SetObjectTransform(int index, float x, float y, float z, float qx, float qy, float qz, float qw, float vx, float vy, float vz);
     int GetObjectCount();
+    int GetTrueObjectCount();
     void ShutdownPhysics();
 
     bool GetCUDAStatus();

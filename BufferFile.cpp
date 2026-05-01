@@ -73,7 +73,7 @@ void BufferFile::resizeBuffer(std::size_t newSize) {
 }
 
 uint8_t BufferFile::readByte() {
-    if (bufPos_ + 1 >= bufRange_) {
+    if (bufPos_ >= bufRange_) {
         updateBuffer();
     }
     bufPos_++;

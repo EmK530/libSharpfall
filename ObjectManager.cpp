@@ -15,7 +15,18 @@ enum NoDoublesMode
     Smart5 = 3
 };
 
+enum ColoringMode
+{
+    BlackAndWhite = 0,
+    RainbowHue = 1,
+    PFAColors = 2
+};
+
 NoDoublesMode limiter = PerFrameDynamic;
+ColoringMode color = RainbowHue;
+float velX = 0.0f;
+float velY = -15.0f;
+float velZ = 0.0f;
 
 size_t blockLimit = 2500;
 size_t spawnsThisFrame = 0;
@@ -36,11 +47,15 @@ extern "C"
 {
     __declspec(dllexport) int OM_GetAllColorData(ColorData* buffer, int bufferSize)
     {
-        int count = min(bufferSize, (int)gColor.size());
-        for (int i = 0; i < count; i++)
+        int count = (int)gColor.size();
+        int trueIndex = -1;
+        for (int i = 0; trueIndex < bufferSize && i < count; i++)
         {
+            if (!actorLivingStatus[i])
+                continue;
+            trueIndex++;
             ColorData c = gColor[i];
-            buffer[i].r = c.r; buffer[i].g = c.g; buffer[i].b = c.b; buffer[i].a = c.a;
+            buffer[trueIndex].r = c.r; buffer[trueIndex].g = c.g; buffer[trueIndex].b = c.b; buffer[trueIndex].a = c.a;
         }
         return 1;
     }
@@ -89,7 +104,7 @@ void ResetOM()
 
 void SafetyCheck()
 {
-    if (_PhysXUnity.GetObjectCount() != gColor.size())
+    if (_PhysXUnity.GetTrueObjectCount() != gColor.size())
     {
         ResetOM();
     }
@@ -127,6 +142,26 @@ ColorData HSVtoRGB(float h, float s, float v, float alpha = 1.0f)
     return color;
 }
 
+ColorData GenerateColor(char note, int track)
+{
+    switch (color)
+    {
+        case BlackAndWhite:
+        {
+            char n = note % 12;
+            if (n == 1 || n == 3 || n == 6 || n == 8 || n == 10)
+            {
+                return ColorData{ 0, 0, 0, 1.0f };
+            }
+            return ColorData{ 1, 1, 1, 1.0f };
+        }
+        case RainbowHue:
+            return HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f);
+        case PFAColors:
+            return PFAColors::trackColors[track];
+    }
+}
+
 void SubmitNote(unsigned long long clock, int track, char note, char vel)
 {
     switch (limiter)
@@ -162,13 +197,13 @@ void SubmitNote(unsigned long long clock, int track, char note, char vel)
             note * 0.1f + (-6.0f),
             7.0f,
             0.0f,
-            0.0f, // todo: vel.x
-            -15.0f, // todo: vel.y
-            0.0f // todo: vel.z
+            velX, // todo: vel.x
+            velY, // todo: vel.y
+            velZ // todo: vel.z
         );
 
         //gColor.push_back(HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f));
-        gColor.push_back(PFAColors::trackColors[track]);
+        gColor.push_back(GenerateColor(note, track));
     }
     else
     {
@@ -179,12 +214,12 @@ void SubmitNote(unsigned long long clock, int track, char note, char vel)
             7.0f,
             0.0f,
             0.0f, 0.0f, 0.0f, 1.0f,
-            0.0f, // todo: vel.x
-            -15.0f, // todo: vel.y
-            0.0f // todo: vel.z
+            velX, // todo: vel.x
+            velY, // todo: vel.y
+            velZ // todo: vel.z
         );
         //gColor[index] = HSVtoRGB(note / 0.35555555555f, 1.0f, 1.0f);
-        gColor[index] = PFAColors::trackColors[track];
+        gColor[index] = GenerateColor(note, track);
     }
 
     totalSpawns++;
@@ -207,5 +242,20 @@ extern "C"
             perNoteLimit = val;
             return;
         }
+        if (strcmp(target, "LimitType") == 0)
+        {
+            limiter = (NoDoublesMode)val;
+            return;
+        }
+        if (strcmp(target, "ColorMode") == 0)
+        {
+            color = (ColoringMode)val;
+            return;
+        }
+    }
+    __declspec(dllexport) void OM_WriteSpawnVelocity(float x, float y, float z) {
+        velX = x;
+        velY = y;
+        velZ = z;
     }
 }

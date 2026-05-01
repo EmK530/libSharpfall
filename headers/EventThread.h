@@ -6,7 +6,7 @@
 #include "Synth.h"
 #include <future>
 
-constexpr size_t BUFFER_SIZE = 65536;
+constexpr size_t BUFFER_SIZE = 2097152;
 
 unsigned long eventBuffer[BUFFER_SIZE];
 unsigned long* const bufferStart = &eventBuffer[0];

@@ -6,6 +6,7 @@
 #include "headers\PFAColors.h"
 #include <stdio.h>
 #include <memory>
+#include <inttypes.h>
 
 std::vector<std::unique_ptr<unsigned char[]>> trackData;
 std::vector<int> trackSizes;
@@ -25,6 +26,8 @@ bool loaded = false;
 
 Clock midiClock;
 
+#define COPY_BUF_SIZE 16000000
+
 int CopyTrack(BufferFile* buf, int id)
 {
     if (lastPos != 0)
@@ -37,15 +40,16 @@ int CopyTrack(BufferFile* buf, int id)
         printf("Could not find track %i\n", id);
         return 0;
     }
-    printf("Copying track %i / %i\n", realTracks + 1, trackCount);
     realTracks++;
 
     lastSize = 0;
     for (int i = 0; i < 4; ++i)
         lastSize = (lastSize << 8) | buf->readByte();
 
+    printf("Copying track %i / %i (Size %" PRId64 ")\n", realTracks + 1, trackCount, lastSize);
+
     int64_t sz = lastSize;
-    int offset = 0;
+    int64_t offset = 0;
 
     trackData.push_back(std::make_unique<unsigned char[]>(sz));
     trackSizes.push_back(sz);
@@ -53,10 +57,15 @@ int CopyTrack(BufferFile* buf, int id)
 
     while (sz > 0)
     {
+        //printf("sz: %lli\n", sz);
         int64_t use = std::min<int64_t>(sz, buf->getBufRange() - buf->getBufPos());
+        if (use == 0)
+            use = std::min<int64_t>(sz, COPY_BUF_SIZE);
+        //printf("use: %lli\n", use);
         buf->copy(trackBuf.get(), offset, use);
         offset += use;
         sz -= use;
+        //printf("loop\n");
     }
     return 1;
 }
@@ -89,7 +98,7 @@ void handleSysEx(unsigned char*& tR) {
 
     MIDIHDR longdata{};
     longdata.lpData = (LPSTR)arr;
-    longdata.dwBufferLength = static_cast<DWORD>(size);
+    longdata.dwBufferLength = static_cast<DWORD>(pos);
     longdata.dwBytesRecorded = static_cast<DWORD>(pos);
     longdata.dwFlags = 0;
 
@@ -312,7 +321,7 @@ extern "C"
         printf("Tracks: %i\n", trackCount);
         printf("PPQ: %i\n", ppq);
 
-        buf.resizeBuffer(16000000); // 16 MB
+        buf.resizeBuffer(COPY_BUF_SIZE); // 16 MB
 
         int i = 0;
         for (i = 0; i < trackCount; i++)

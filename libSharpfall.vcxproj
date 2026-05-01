@@ -121,6 +121,10 @@
       <AdditionalLibraryDirectories>$(PHYSX_PATH)\lib\debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(PHYSX_PATH)\lib\debug\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -133,7 +137,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(PHYSX_PATH)\include;$(CUDA_PATH)\include;headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\EmK530\Desktop\physx\physx\include;$(CUDA_PATH)\include;headers</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
@@ -141,11 +145,11 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>$(PHYSX_PATH)\lib\release\*;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(PHYSX_PATH)\release\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\Users\EmK530\Desktop\physx\physx\bin\win.x86_64.vc143.mt\release\*.lib;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\EmK530\Desktop\physx\physx\bin\win.x86_64.vc143.mt\release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy x64\Release\libSharpfall.dll "C:\Users\EmK530\Sharpfall v3\Assets\Plugins\x86_64\libSharpfall.dll" &amp; copy x64\Release\libSharpfall.dll "D:\Software\Sharpfall\v3 Early Builds\v3.0.0-pre-2026012602\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>copy x64\Release\libSharpfall.dll "D:\Software\Sharpfall\v3 Early Builds\v3.0.0-nocuda\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

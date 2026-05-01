@@ -22,13 +22,21 @@ static PxMaterial* mMaterial = nullptr;
 static physx::PxCudaContextManager* mCudaContextManager;
 
 static std::vector<PxRigidDynamic*> gActors;
+std::vector<bool> actorLivingStatus;
+static int gActorCount = 0;
+static int sleepingActors = 0;
 
 bool CUDA = false;
 const char* CUDA_device = "N/A";
 const char* CUDA_error = "N/A";
 
+// #define CUDA_DISABLED
+
 static bool CUDA_requested = false;
 static bool DisplayErrors = false;
+
+static float GravitySetting = -9.81f;
+static float cullHeight = -500.0f;
 
 constexpr std::array<const char*, 37> dangerGPUs = {
     // 6.1
@@ -77,6 +85,8 @@ constexpr std::array<const char*, 37> dangerGPUs = {
 
 int solverIterations = 16;
 int subStepTargetFPS = 60;
+PxVec3 globalScale(0.1f, 1.0f, 1.0f);
+PxShape* shape = nullptr;
 
 class MyErrorCallback : public PxErrorCallback
 {
@@ -101,13 +111,21 @@ std::string toLower(std::string s) {
 static PxScene* CreateScene()
 {
     PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
-    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+    sceneDesc.gravity = PxVec3(0.0f, GravitySetting, 0.0f); //PxVec3(0.0f, -9.81f, 0.0f);
     sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(std::thread::hardware_concurrency());
     sceneDesc.filterShader = PxDefaultSimulationFilterShader;
     sceneDesc.maxNbContactDataBlocks = 3906250;
 
+    sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
+    sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
+    sceneDesc.flags |= PxSceneFlag::eENABLE_STABILIZATION;
+	sceneDesc.broadPhaseType = PxBroadPhaseType::ePABP;
+    //sceneDesc.flags |= PxSceneFlag::eENABLE_AVERAGE_POINT;
+
     CUDA = false;
     CUDA_error = "N/A";
+
+#ifndef CUDA_DISABLED
 
     if (CUDA_requested)
     {
@@ -116,60 +134,108 @@ static PxScene* CreateScene()
 
         if (deviceCount > 0)
         {
-            cudaDeviceProp deviceProp;
-            cudaGetDeviceProperties(&deviceProp, 0);
-
-            DisplayErrors = true;
-
-            bool allowed = true;
-            std::string gpuNameLower = toLower(deviceProp.name);
-            for (const char* gpu : dangerGPUs)
+            int selectedDevice = 0;
+            if (deviceCount > 1)
             {
-                if (gpuNameLower.find(gpu) != std::string::npos)
+                cudaDeviceProp deviceProp;
+
+                selectedDevice = -1;
+
+                for (int i = 0; i <= deviceCount; i++)
                 {
+                    cudaGetDeviceProperties(&deviceProp, i);
+
                     char message[512];
-                    snprintf(message, 512, "Your CUDA device (%s) does not meet the Compute Capability recommendation of 7.0!\n\nYou can try to enable CUDA anyway, but it's not officially supported by this PhysX version and might crash Sharpfall.\n\nTo enable anyway, press Yes.", deviceProp.name);
-                    allowed = MessageBoxA(0, message, "libSharpfall Warning", MB_ICONWARNING | MB_YESNO) == IDYES;
-                    break;
+                    snprintf(message, 512,"CUDA Device %d/%d:\n%s\n\nDo you want to use this GPU?",i+1,deviceCount,deviceProp.name);
+
+                    int result = MessageBoxA(0,message,"Select CUDA Device",MB_ICONQUESTION | MB_YESNOCANCEL);
+
+                    if (result == IDYES)
+                    {
+                        selectedDevice = i;
+                        break;
+                    }
+                    else if (result == IDCANCEL)
+                    {
+                        break;
+                    }
                 }
-            }
 
-            if (allowed)
-            {
-                PxCudaContextManagerDesc desc;
-                mCudaContextManager = PxCreateCudaContextManager(*mFoundation, desc, nullptr);
-
-                if (mCudaContextManager && mCudaContextManager->contextIsValid())
+                if (selectedDevice == -1)
                 {
-                    sceneDesc.cudaContextManager = mCudaContextManager;
-                    sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
-                    sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
-                    sceneDesc.flags |= PxSceneFlag::eDISABLE_CCD_RESWEEP;
-                    sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
-
-                    PxGpuDynamicsMemoryConfig gpuMem;
-                    gpuMem.maxRigidContactCount = 1024 * 512 * 16;
-                    gpuMem.maxRigidPatchCount = 1024 * 80 * 16;
-                    gpuMem.foundLostPairsCapacity = 256 * 1024 * 16;
-                    sceneDesc.gpuDynamicsConfig = gpuMem;
-
-                    CUDA = true;
-                    CUDA_device = _strdup(deviceProp.name);
-                }
-                else {
-                    MessageBoxA(0, "Failed to create CUDA Context Manager, cannot enable CUDA acceleration.", "libSharpfall Error", MB_ICONERROR);
-                    CUDA_error = "Failed to create CUDA Context Manager";
+                    MessageBoxA(0,"No CUDA device selected.","libSharpfall",MB_ICONWARNING);
+                    CUDA_error = "No CUDA device selected";
                 }
             }
-            
-            DisplayErrors = false;
+
+            if (selectedDevice != -1)
+            {
+                cudaDeviceProp deviceProp;
+                cudaGetDeviceProperties(&deviceProp, selectedDevice);
+                cudaSetDevice(selectedDevice);
+
+                DisplayErrors = true;
+
+                bool allowed = true;
+                std::string gpuNameLower = toLower(deviceProp.name);
+
+                for (const char* gpu : dangerGPUs)
+                {
+                    if (gpuNameLower.find(gpu) != std::string::npos)
+                    {
+                        char message[512];
+                        snprintf(message, 512,
+                            "Your CUDA device (%s) does not meet the Compute Capability recommendation of 7.0!\n\n"
+                            "You can try anyway, but it might crash Sharpfall.\n\nContinue?",
+                            deviceProp.name
+                        );
+
+                        allowed = MessageBoxA(0, message, "libSharpfall Warning", MB_ICONWARNING | MB_YESNO) == IDYES;
+
+                        break;
+                    }
+                }
+
+                if (allowed)
+                {
+                    PxCudaContextManagerDesc desc;
+                    desc.deviceOrdinal = selectedDevice;
+                    mCudaContextManager = PxCreateCudaContextManager(*mFoundation, desc, nullptr);
+
+                    if (mCudaContextManager && mCudaContextManager->contextIsValid())
+                    {
+                        sceneDesc.cudaContextManager = mCudaContextManager;
+                        sceneDesc.flags |= PxSceneFlag::eENABLE_GPU_DYNAMICS;
+                        sceneDesc.broadPhaseType = PxBroadPhaseType::eGPU;
+
+                        PxGpuDynamicsMemoryConfig gpuMem;
+                        gpuMem.maxRigidContactCount = 1024 * 384 * 4;
+                        gpuMem.maxRigidPatchCount = 1024 * 48 * 4;
+                        gpuMem.foundLostPairsCapacity = 256 * 1024 * 4;
+                        gpuMem.heapCapacity = 96 * 1024 * 1024 * 4;
+                        sceneDesc.gpuDynamicsConfig = gpuMem;
+
+                        CUDA = true;
+                        CUDA_device = _strdup(deviceProp.name);
+                    }
+                    else
+                    {
+                        MessageBoxA(0, "Failed to create CUDA Context Manager.", "libSharpfall Error", MB_ICONERROR);
+                        CUDA_error = "Failed to create CUDA Context Manager";
+                    }
+                }
+
+                DisplayErrors = false;
+            }
         }
         else
         {
-            MessageBoxA(0, "No CUDA devices found, cannot enable CUDA acceleration.", "libSharpfall Error", MB_ICONERROR);
+            MessageBoxA(0,"No CUDA devices found.","libSharpfall Error",MB_ICONERROR);
             CUDA_error = "No CUDA devices found";
         }
     }
+
+#endif
 
     return mPhysics->createScene(sceneDesc);
 }
@@ -212,6 +278,10 @@ extern "C"
         // Create default material
         mMaterial = mPhysics->createMaterial(0.25f, 0.25f, 0.15f);
 
+        shape = mPhysics->createShape(PxBoxGeometry(globalScale.x / 2, globalScale.y / 2, globalScale.z / 2), *mMaterial);
+        shape->setContactOffset(0.01f);
+        shape->setRestOffset(0.0f);
+
         mScene = CreateScene();
         if (!mScene)
         {
@@ -220,6 +290,8 @@ extern "C"
         }
 
         gActors.clear();
+        actorLivingStatus.clear();
+        sleepingActors = 0;
 
         // Create static platform
         PxTransform platformTransform(PxVec3(0.0f, -5.0f, 0.0f));
@@ -234,16 +306,21 @@ extern "C"
     __declspec(dllexport) int PXU_CreateObject(float x, float y, float z, float vx, float vy, float vz)
     {
         PxRigidDynamic* body = mPhysics->createRigidDynamic(PxTransform(PxVec3(x, y, z)));
-        PxShape* shape = mPhysics->createShape(PxBoxGeometry(0.05f, 0.5f, 0.5f), *mMaterial);
+
+        body->setSleepThreshold(0.05f);      // higher than default
+        body->setStabilizationThreshold(0.02f);
 
         body->attachShape(*shape);
 
-        body->setSolverIterationCounts(solverIterations * (CUDA ? 2 : 1), 1);
+        int solver = solverIterations * (CUDA ? 2 : 1);
+        body->setSolverIterationCounts(solver, 1);
 
         body->setLinearVelocity(PxVec3(vx, vy, vz));
         PxRigidBodyExt::updateMassAndInertia(*body, 1.0f);
         mScene->addActor(*body);
         gActors.push_back(body);
+        actorLivingStatus.push_back(true);
+
         return static_cast<int>(gActors.size() - 1);
     }
 
@@ -251,6 +328,86 @@ extern "C"
     {
         for (auto a : gActors) { mScene->removeActor(*a); a->release(); }
         gActors.clear();
+        actorLivingStatus.clear();
+        sleepingActors = 0;
+    }
+
+    __declspec(dllexport) void PXU_ShutdownPhysics()
+    {
+        // not solved yet, releasing causes Unity Editor crash
+        PXU_DeleteAllObjects();
+
+        if (mScene)
+        {
+            mScene->release();
+            mScene = nullptr;
+        }
+
+        if (mCudaContextManager)
+        {
+            mCudaContextManager->release();
+            mCudaContextManager = nullptr;
+        }
+    }
+
+    __declspec(dllexport) void PXU_SetGravity(float x) {
+        if (!mPhysics)
+            return;
+
+        GravitySetting = x;
+
+        PXU_ShutdownPhysics();
+
+        mScene = CreateScene();
+        if (!mScene)
+        {
+            MessageBoxA(0, "Failed to initialize PhysX on: mPhysics->createScene", "libSharpfall Error", MB_ICONERROR);
+            return;
+        }
+
+        gActors.clear();
+        actorLivingStatus.clear();
+        sleepingActors = 0;
+
+        // Create static platform
+        PxTransform platformTransform(PxVec3(0.0f, -5.0f, 0.0f));
+        PxBoxGeometry platformGeom(10.0f, 5.0f, 10.0f);
+        PxMaterial* platformMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.10f);
+        PxRigidStatic* platform = PxCreateStatic(*mPhysics, platformTransform, platformGeom, *platformMaterial);
+        mScene->addActor(*platform);
+    }
+
+    __declspec(dllexport) void PXU_SetCullHeight(float h) {
+        cullHeight = h;
+        return;
+    }
+
+    __declspec(dllexport) void PXU_SetNoteSize(float x, float y, float z) {
+        if (!mPhysics)
+            return;
+
+        globalScale = PxVec3(x, y, z);
+        shape->setGeometry(PxBoxGeometry(x / 2, y / 2, z / 2));
+
+        PXU_ShutdownPhysics();
+
+        mScene = CreateScene();
+        if (!mScene)
+        {
+            MessageBoxA(0, "Failed to initialize PhysX on: mPhysics->createScene", "libSharpfall Error", MB_ICONERROR);
+            return;
+        }
+
+        gActors.clear();
+        actorLivingStatus.clear();
+        sleepingActors = 0;
+
+        // Create static platform
+        PxTransform platformTransform(PxVec3(0.0f, -5.0f, 0.0f));
+        PxBoxGeometry platformGeom(10.0f, 5.0f, 10.0f);
+        PxMaterial* platformMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.10f);
+        PxRigidStatic* platform = PxCreateStatic(*mPhysics, platformTransform, platformGeom, *platformMaterial);
+        mScene->addActor(*platform);
     }
 
     __declspec(dllexport) void PXU_BeginStep(float deltaTime)
@@ -278,15 +435,39 @@ extern "C"
     {
         mScene->simulate(deltaTime);
         mScene->fetchResults(true);
+
+        // Disable all actors under Y = -500 instead of deleting
+        for(int i = 0; i < gActors.size(); i++)
+        {
+            if (!actorLivingStatus[i])
+                continue;
+            PxRigidDynamic* actor = gActors[i];
+            if (actor)
+            {
+                PxVec3 pos = actor->getGlobalPose().p;
+                if (pos.y < cullHeight)
+                {
+                    // Disable the actor for simulation
+                    actor->putToSleep();
+                    actor->setActorFlag(PxActorFlag::eDISABLE_SIMULATION, true);
+                    actorLivingStatus[i] = false;
+                    sleepingActors++;
+                }
+            }
+        }
     }
 
     __declspec(dllexport) int PXU_GetAllObjectMatrices(UnityMatrix* buffer, int bufferSize)
     {
-        int count = min(bufferSize, (int)gActors.size());
-        for (int i = 0; i < count; i++)
+        int count = (int)gActors.size();
+        int trueIndex = -1;
+        for (int i = 0; trueIndex < bufferSize && i < count; i++)
         {
+            if (!actorLivingStatus[i])
+                continue;
+            trueIndex++;
             PxTransform t = gActors[i]->getGlobalPose();
-            PxVec3 s(0.1f, 1.0f, 1.0f); // scale
+            PxVec3 s = globalScale;
 
             PxQuat q = t.q;
 
@@ -302,25 +483,25 @@ extern "C"
             float wz = q.w * q.z;
 
             // Column-major rotation * scale for Unity
-            buffer[i].m00 = (1 - 2 * (yy + zz)) * s.x;
-            buffer[i].m01 = (2 * (xy + wz)) * s.x;
-            buffer[i].m02 = (2 * (xz - wy)) * s.x;
-            buffer[i].m03 = 0.0f;
+            buffer[trueIndex].m00 = (1 - 2 * (yy + zz)) * s.x;
+            buffer[trueIndex].m01 = (2 * (xy + wz)) * s.x;
+            buffer[trueIndex].m02 = (2 * (xz - wy)) * s.x;
+            buffer[trueIndex].m03 = 0.0f;
 
-            buffer[i].m10 = (2 * (xy - wz)) * s.y;
-            buffer[i].m11 = (1 - 2 * (xx + zz)) * s.y;
-            buffer[i].m12 = (2 * (yz + wx)) * s.y;
-            buffer[i].m13 = 0.0f;
+            buffer[trueIndex].m10 = (2 * (xy - wz)) * s.y;
+            buffer[trueIndex].m11 = (1 - 2 * (xx + zz)) * s.y;
+            buffer[trueIndex].m12 = (2 * (yz + wx)) * s.y;
+            buffer[trueIndex].m13 = 0.0f;
 
-            buffer[i].m20 = (2 * (xz + wy)) * s.z;
-            buffer[i].m21 = (2 * (yz - wx)) * s.z;
-            buffer[i].m22 = (1 - 2 * (xx + yy)) * s.z;
-            buffer[i].m23 = 0.0f;
+            buffer[trueIndex].m20 = (2 * (xz + wy)) * s.z;
+            buffer[trueIndex].m21 = (2 * (yz - wx)) * s.z;
+            buffer[trueIndex].m22 = (1 - 2 * (xx + yy)) * s.z;
+            buffer[trueIndex].m23 = 0.0f;
 
-            buffer[i].m30 = t.p.x;
-            buffer[i].m31 = t.p.y;
-            buffer[i].m32 = t.p.z;
-            buffer[i].m33 = 1.0f;
+            buffer[trueIndex].m30 = t.p.x;
+            buffer[trueIndex].m31 = t.p.y;
+            buffer[trueIndex].m32 = t.p.z;
+            buffer[trueIndex].m33 = 1.0f;
         }
         return count;
     }
@@ -340,30 +521,28 @@ extern "C"
 
         actor->setLinearVelocity(PxVec3(vx, vy, vz));
         actor->setAngularVelocity(PxVec3(0.0f));
+
+        // Re-enable simulation
+        actor->setActorFlag(PxActorFlag::eDISABLE_SIMULATION, false);
+        actor->wakeUp();
+        if (!actorLivingStatus[index])
+        {
+            sleepingActors--;
+            actorLivingStatus[index] = true;
+        }
     }
 
-    __declspec(dllexport) int PXU_GetObjectCount() { return (int)gActors.size(); }
-
-    __declspec(dllexport) void PXU_ShutdownPhysics()
-    {
-        // not solved yet, releasing causes Unity Editor crash
-        PXU_DeleteAllObjects();
-
-        if (mScene)
-        {
-            mScene->release();
-            mScene = nullptr;
-        }
-
-        if (mCudaContextManager)
-        {
-            mCudaContextManager->release();
-            mCudaContextManager = nullptr;
-        }
+    __declspec(dllexport) int PXU_GetObjectCount() {
+        return (int)gActors.size() - sleepingActors;
     }
 
     __declspec(dllexport) bool PXU_SetCUDAState(bool enabled)
     {
+#ifdef CUDA_DISABLED
+        MessageBoxA(0, "CUDA cannot be toggled on nocuda builds.", "libSharpfall Error", MB_ICONERROR);
+        return false;
+#endif
+
         if (CUDA == enabled)
             return true;
 
@@ -383,6 +562,8 @@ extern "C"
         }
 
         gActors.clear();
+        actorLivingStatus.clear();
+        sleepingActors = 0;
 
         // Create static platform
         PxTransform platformTransform(PxVec3(0.0f, -5.0f, 0.0f));
@@ -443,6 +624,10 @@ void PhysXUnity::SetObjectTransform(int index, float x, float y, float z, float 
 int PhysXUnity::GetObjectCount()
 {
     return PXU_GetObjectCount();
+}
+int PhysXUnity::GetTrueObjectCount()
+{
+    return (int)gActors.size();
 }
 void PhysXUnity::ShutdownPhysics()
 {

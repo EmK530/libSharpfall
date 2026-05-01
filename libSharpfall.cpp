@@ -1,9 +1,9 @@
-#include "headers\PhysXUnity.h"
 #define _CRT_SECURE_NO_WARNINGS
+#include "headers\PhysXUnity.h"
 
-#define libSharpfall_TARGET "LV6";
-#define libSharpfall_VER "indev-2026012603";
-#define ConMIDI_VER "v3.0.0 (v3-b401 C++ Port)";
+#define libSharpfall_TARGET "LV7";
+#define libSharpfall_VER "v1.0.0-main-2026042101";
+#define ConMIDI_VER "v3.0.1";
 
 #define VALIDATION "cd629ef8b2064d09"
 
