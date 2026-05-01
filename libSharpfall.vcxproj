@@ -145,11 +145,12 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>C:\Users\EmK530\Desktop\physx\physx\bin\win.x86_64.vc143.mt\release\*.lib;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\EmK530\Desktop\physx\physx\bin\win.x86_64.vc143.mt\release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(PHYSX_PATH)\bin\win.x86_64.vc143.mt\release\*.lib;$(CUDA_PATH)\lib\x64\*;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(PHYSX_PATH)\bin\win.x86_64.vc143.mt\release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy x64\Release\libSharpfall.dll "D:\Software\Sharpfall\v3 Early Builds\v3.0.0-nocuda\Sharpfall_Data\Plugins\x86_64\libSharpfall.dll"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
